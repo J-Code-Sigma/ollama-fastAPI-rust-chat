@@ -16,7 +16,7 @@ struct OllamaResponse {
     response: String,
 }
 
-#[post("/v1/run/tinyllama")]
+#[post("/v1/chat")]
 async fn chat(
     body: web::Json<ChatRequest>,
     semaphore: web::Data<Arc<Semaphore>>,
@@ -26,17 +26,24 @@ async fn chat(
     let start_time = Local::now();
     println!("[{}] Received prompt: {}", start_time.format("%H:%M:%S"), body.prompt);
 
-    // Ollama host from env or default
+    // Ollama configuration from env or default
     let ollama_host = std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://ollama:11434".to_string());
+    let ollama_model = std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llama3.2".to_string());
+
+    let topics = std::fs::read_to_string("topics.txt").unwrap_or_else(|_| "General assistance".to_string());
+    let system_prompt = format!("You are a specialized AI assistant. You stay strictly on these topics: {}. If a user asks about other topics, you MUST state that you do not have access and cannot help with those. NEVER pretend to have information outside these topics. You also DO NOT HAVE ACCESS to user accounts, passwords, or personal data.", topics);
+
+    let payload = serde_json::json!({
+        "model": ollama_model,
+        "prompt": body.prompt,
+        "system": system_prompt,
+        "stream": false
+    });
+    println!("[{}] Sending to Ollama: {}", start_time.format("%H:%M:%S"), payload);
 
     let resp_result = client
         .post(format!("{}/api/generate", ollama_host))
-        .json(&serde_json::json!({
-            "model": "tinyllama",
-            "prompt": body.prompt,
-            "system": "You are a helpful, harmless, and honest assistant. You must refuse to provide information on illegal activities, dangerous substances, hate speech, or sexually explicit content. If you are unsure if a request is safe, err on the side of caution and decline politely.",
-            "stream": false
-        }))
+        .json(&payload)
         .send()
         .await;
 

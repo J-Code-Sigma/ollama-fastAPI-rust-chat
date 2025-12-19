@@ -49,9 +49,9 @@ async def chat(request: ChatRequest):
             logger.warning(f"Blocked by {scanner.__class__.__name__} (risk: {risk_score}): {request.prompt}")
             raise HTTPException(status_code=400, detail=f"Request blocked for safety reasons ({scanner.__class__.__name__}).")
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:
             resp = await client.post(
-                f"{RUST_HOST}/v1/run/tinyllama",
+                f"{RUST_HOST}/v1/chat",
                 json={"prompt": request.prompt}
             )
             logger.info(f"Rust API response status: {resp.status_code}")

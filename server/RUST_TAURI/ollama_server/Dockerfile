@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/
 
 WORKDIR /app
 COPY --from=builder /usr/src/app/target/release/ollama_server ./ollama_server
+COPY topics.txt ./topics.txt
 
 EXPOSE 8080
 CMD ["./ollama_server"]

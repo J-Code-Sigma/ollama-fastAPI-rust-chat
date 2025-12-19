@@ -5,6 +5,7 @@ networks:
 volumes:
   ollama-data:
 
+
 services:
   fastapi:
     build:
@@ -29,6 +30,8 @@ services:
       - ollama
     networks:
       - appnet
+    volumes:
+      - ./server/RUST_TAURI/ollama_server/topics.txt:/app/topics.txt
 
   ollama:
     image: ollama/ollama:latest
@@ -39,4 +42,4 @@ services:
     volumes:
       - ollama-data:/root/.ollama
       - ./start-ollama.sh:/start-ollama.sh
-    entrypoint: ["/start-ollama.sh"]
+    entrypoint: [ "/start-ollama.sh" ]
