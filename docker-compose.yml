@@ -35,6 +35,7 @@ services:
 
   llama-cpp:
     image: ghcr.io/ggml-org/llama.cpp:server
+    platform: linux/arm64
     ports:
       - "11434:11434"
     networks:

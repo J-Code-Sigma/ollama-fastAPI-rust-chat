@@ -16,4 +16,4 @@ echo "Starting llama.cpp server..."
 # --port 11434 to keep existing mapping or change as needed
 # -m for the model path
 # --nobrowser to disable auto-opening browser
-./llama-server --host 0.0.0.0 --port 11434 -m "$MODEL_PATH" --nobrowser
+/llama-server --host 0.0.0.0 --port 11434 -m "$MODEL_PATH" --nobrowser
