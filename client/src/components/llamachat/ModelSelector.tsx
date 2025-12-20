@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useOllama } from './OllamaProvider';
+import { usellamacpp } from './llamacppProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,7 +12,7 @@ import {
 import { Download, RefreshCw } from 'lucide-react';
 
 export const ModelSelector: React.FC = () => {
-  const { models, selectedModel, selectModel, downloadModel, fetchModels, isLoading } = useOllama();
+  const { models, selectedModel, selectModel, downloadModel, fetchModels, isLoading } = usellamacpp();
   const [customModel, setCustomModel] = useState('');
 
   const handleDownload = async () => {

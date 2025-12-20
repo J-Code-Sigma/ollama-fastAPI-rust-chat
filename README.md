@@ -33,7 +33,7 @@ graph LR
 1.  **Clone the repository**:
     ```bash
     git clone <repository-url>
-    cd ollama-fastAPI-rust-chat
+    cd llamacpp-fastAPI-rust-chat
     ```
 
 2.  **Start the services**:
@@ -92,7 +92,7 @@ Handled by **FastAPI**, if a prompt is blocked here, it **never reaches the LLM*
 ### 2. Soft Refusal (In-Inference)
 Handled by the **LLM** itself via instructions injected by the **Rust Middleware**.
 
-- **Instruction Source**: The `server/RUST_TAURI/ollama_server/topics.txt` file.
+- **Instruction Source**: The `server/RUST_TAURI/llammacpp_server/topics.txt` file.
 - **Mechanism**: The Rust service reads `topics.txt` and wraps it into a **System Prompt**. It instructs the AI: *"You stay strictly on these topics: [topics.txt contents]. If a user asks about other topics, you MUST state that you do not have access."*
 - **Effect**: The AI will generate a polite refusal message in its own voice if the user tries to talk about off-limit subjects.
 

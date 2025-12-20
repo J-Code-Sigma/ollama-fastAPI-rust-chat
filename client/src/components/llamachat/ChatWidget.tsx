@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useOllama } from './OllamaProvider';
+import { useLlamacpp } from './LlamaProvider';
 import { ChatMessage } from './ChatMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,18 +7,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, X, Send, Trash2, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const OllamaChatWidget: React.FC = () => {
-  const { 
-    messages, 
-    isLoading, 
-    isOpen, 
+export const LlamaCppChatWidget: React.FC = () => {
+  const {
+    messages,
+    isLoading,
+    isOpen,
     isFullScreen,
-    toggleChat, 
+    toggleChat,
     toggleFullScreen,
-    sendMessage, 
+    sendMessage,
     clearMessages
-  } = useOllama();
-  
+  } = useLlamacpp();
+
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -55,8 +55,8 @@ export const OllamaChatWidget: React.FC = () => {
       {isOpen && (
         <div className={cn(
           'bg-card border border-border shadow-2xl z-50 flex flex-col',
-          isFullScreen 
-            ? 'fixed inset-0 rounded-none' 
+          isFullScreen
+            ? 'fixed inset-0 rounded-none'
             : 'fixed bottom-24 right-6 w-96 h-[600px] rounded-lg'
         )}>
           {/* Header */}

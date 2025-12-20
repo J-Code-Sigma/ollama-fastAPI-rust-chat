@@ -1,4 +1,4 @@
-export interface OllamaModel {
+export interface LlamacppModel {
   name: string;
   size: string;
   digest: string;
@@ -12,19 +12,19 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export interface OllamaConfig {
+export interface LlamacppConfig {
   baseUrl?: string;
   onNavigate?: (path: string) => void;
 }
 
-export interface OllamaContextType {
+export interface LlamacppContextType {
   messages: ChatMessage[];
-  models: OllamaModel[];
+  models: LlamacppModel[];
   selectedModel: string | null;
   isLoading: boolean;
   isOpen: boolean;
   isFullScreen: boolean;
-  config: OllamaConfig;
+  config: LlamacppConfig;
   sendMessage: (content: string) => Promise<void>;
   selectModel: (modelName: string) => void;
   downloadModel: (modelName: string) => Promise<void>;

@@ -1,25 +1,25 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { OllamaContextType, ChatMessage, OllamaModel, OllamaConfig } from './types';
+import { LlamacppContextType, ChatMessage, LlamacppModel, LlamacppConfig } from './types';
 import { toast } from '@/hooks/use-toast';
 
-const OllamaContext = createContext<OllamaContextType | undefined>(undefined);
+const LlamacppContext = createContext<LlamacppContextType | undefined>(undefined);
 
-export const useOllama = () => {
-  const context = useContext(OllamaContext);
+export const useLlamacpp = () => {
+  const context = useContext(LlamacppContext);
   if (!context) {
-    throw new Error('useOllama must be used within OllamaProvider');
+    throw new Error('useLlamacpp must be used within LlamaProvider');
   }
   return context;
 };
 
-interface OllamaProviderProps {
+interface LlamaProviderProps {
   children: React.ReactNode;
-  config?: OllamaConfig;
+  config?: LlamacppConfig;
 }
 
-export const OllamaProvider: React.FC<OllamaProviderProps> = ({ children, config = {} }) => {
+export const LlamaProvider: React.FC<LlamaProviderProps> = ({ children, config = {} }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [models, setModels] = useState<OllamaModel[]>([]);
+  const [models, setModels] = useState<LlamacppModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +39,7 @@ export const OllamaProvider: React.FC<OllamaProviderProps> = ({ children, config
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to connect to Ollama. Make sure Ollama is running.',
+        description: 'Failed to connect to Llamacpp. Make sure Llamacpp is running.',
         variant: 'destructive',
       });
     }
@@ -72,7 +72,7 @@ export const OllamaProvider: React.FC<OllamaProviderProps> = ({ children, config
         title: 'Success',
         description: `Model ${modelName} downloaded successfully`,
       });
-      
+
       await fetchModels();
       setSelectedModel(modelName);
     } catch (error) {
@@ -117,10 +117,10 @@ export const OllamaProvider: React.FC<OllamaProviderProps> = ({ children, config
       if (!response.ok) throw new Error('Failed to get response');
 
       const data = await response.json();
-      
+
       // Handle response - try common response formats
       const responseText = data.response || data.text || data.content || data.message || JSON.stringify(data);
-      
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -157,7 +157,7 @@ export const OllamaProvider: React.FC<OllamaProviderProps> = ({ children, config
     setMessages([]);
   }, []);
 
-  const value: OllamaContextType = {
+  const value: LlamacppContextType = {
     messages,
     models,
     selectedModel,
@@ -174,5 +174,5 @@ export const OllamaProvider: React.FC<OllamaProviderProps> = ({ children, config
     clearMessages,
   };
 
-  return <OllamaContext.Provider value={value}>{children}</OllamaContext.Provider>;
+  return <LlamacppContext.Provider value={value}>{children}</LlamacppContext.Provider>;
 };

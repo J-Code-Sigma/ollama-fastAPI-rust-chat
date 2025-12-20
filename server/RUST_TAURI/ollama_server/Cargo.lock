@@ -851,7 +851,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ollama_server"
+name = "llammacpp_server"
 version = "0.1.0"
 dependencies = [
  "actix-web",

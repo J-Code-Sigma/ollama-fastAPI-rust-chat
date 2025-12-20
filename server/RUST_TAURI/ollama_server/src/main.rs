@@ -19,7 +19,7 @@ struct ChatRequest {
 }
 
 #[derive(Serialize)]
-struct OllamaResponse {
+struct llamacppResponse {
     response: String,
 }
 
@@ -33,9 +33,9 @@ async fn chat(
     let start_time = Local::now();
     println!("[{}] Received prompt: {}", start_time.format("%H:%M:%S"), body.prompt);
 
-    // Ollama configuration from env or default
-    let ollama_host = std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://ollama:11434".to_string());
-    let ollama_model = std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llama3.2".to_string());
+    // Llamacpp configuration from env or default
+    let llammacpp_host = std::env::var("LLAMACPP_HOST").unwrap_or_else(|_| "http://llamacpp:11434".to_string());
+    let llammacpp_model = std::env::var("LLAMACPP_MODEL").unwrap_or_else(|_| "llama3.2".to_string());
 
     let topics = std::fs::read_to_string("topics.txt").unwrap_or_else(|_| "General assistance".to_string());
     let system_prompt = format!("You are a specialized AI assistant. You stay strictly on these topics: {}. If a user asks about other topics, you MUST state that you do not have access and cannot help with those. NEVER pretend to have information outside these topics. You also DO NOT HAVE ACCESS to user accounts, passwords, or personal data.", topics);
@@ -56,14 +56,14 @@ async fn chat(
     }
 
     let payload = serde_json::json!({
-        "model": ollama_model,
+        "model": llammacpp_model,
         "messages": messages,
         "stream": false
     });
     println!("[{}] Sending to llama.cpp (via /v1/chat/completions): {}", start_time.format("%H:%M:%S"), payload);
 
     let resp_result = client
-        .post(format!("{}/v1/chat/completions", ollama_host))
+        .post(format!("{}/v1/chat/completions", llammacpp_host))
         .json(&payload)
         .send()
         .await;
@@ -90,12 +90,12 @@ async fn chat(
         end_time.format("%H:%M:%S")
     );
 
-    HttpResponse::Ok().json(OllamaResponse { response: response_text })
+    HttpResponse::Ok().json(llamacppResponse { response: response_text })
 }
 
-async fn wait_for_llama(ollama_host: &str, client: &Client) {
+async fn wait_for_llama(llammacpp_host: &str, client: &Client) {
     loop {
-        match client.get(format!("{}/health", ollama_host)).send().await {
+        match client.get(format!("{}/health", llammacpp_host)).send().await {
             Ok(resp) if resp.status().is_success() => break,
             _ => {
                 println!("Waiting for llama.cpp to be ready...");
@@ -111,10 +111,10 @@ async fn wait_for_llama(ollama_host: &str, client: &Client) {
 async fn main() -> std::io::Result<()> {
     let semaphore = Arc::new(Semaphore::new(1));
     let client = Client::new();
-    let ollama_host = std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://ollama:11434".to_string());
+    let llammacpp_host = std::env::var("LLAMACPP_HOST").unwrap_or_else(|_| "http://llamacpp:11434".to_string());
 
     // Wait for llama.cpp before starting the server
-    wait_for_llama(&ollama_host, &client).await;
+    wait_for_llama(&llammacpp_host, &client).await;
 
     println!("Starting Rust API on port 8080...");
     HttpServer::new(move || {

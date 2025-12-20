@@ -11,7 +11,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("fastapi_logger")
 
-RUST_HOST = os.getenv("OLLAMA_HOST", "http://rust-api:8080")  # Rust service URL
+RUST_HOST = os.getenv("LLAMACPP_HOST", "http://rust-api:8080")  # Rust service URL
 
 from filter import is_harmful
 from llm_guard.input_scanners import PromptInjection, Toxicity
