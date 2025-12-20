@@ -60,10 +60,10 @@ async fn chat(
         "messages": messages,
         "stream": false
     });
-    println!("[{}] Sending to Ollama (via /api/chat): {}", start_time.format("%H:%M:%S"), payload);
+    println!("[{}] Sending to llama.cpp (via /v1/chat/completions): {}", start_time.format("%H:%M:%S"), payload);
 
     let resp_result = client
-        .post(format!("{}/api/chat", ollama_host))
+        .post(format!("{}/v1/chat/completions", ollama_host))
         .json(&payload)
         .send()
         .await;
@@ -71,15 +71,15 @@ async fn chat(
     let response_text = match resp_result {
         Ok(resp) => match resp.json::<serde_json::Value>().await {
             Ok(json) => {
-                // /api/chat returns response in message.content
-                json["message"]["content"]
+                // OpenAI format: choices[0].message.content
+                json["choices"][0]["message"]["content"]
                     .as_str()
-                    .unwrap_or("No content field found in message")
+                    .unwrap_or("No content field found in first choice")
                     .to_string()
             },
-            Err(_) => "Invalid response from Ollama".to_string(),
+            Err(_) => "Invalid response from llama.cpp".to_string(),
         },
-        Err(_) => "Failed to contact Ollama".to_string(),
+        Err(_) => "Failed to contact llama.cpp".to_string(),
     };
 
     let end_time = Local::now();
@@ -93,12 +93,12 @@ async fn chat(
     HttpResponse::Ok().json(OllamaResponse { response: response_text })
 }
 
-async fn wait_for_ollama(ollama_host: &str, client: &Client) {
+async fn wait_for_llama(ollama_host: &str, client: &Client) {
     loop {
-        match client.get(format!("{}/api/tags", ollama_host)).send().await {
+        match client.get(format!("{}/health", ollama_host)).send().await {
             Ok(resp) if resp.status().is_success() => break,
             _ => {
-                println!("Waiting for Ollama to be ready...");
+                println!("Waiting for llama.cpp to be ready...");
                 sleep(Duration::from_secs(1)).await;
             }
         }
@@ -113,8 +113,8 @@ async fn main() -> std::io::Result<()> {
     let client = Client::new();
     let ollama_host = std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://ollama:11434".to_string());
 
-    // Wait for Ollama before starting the server
-    wait_for_ollama(&ollama_host, &client).await;
+    // Wait for llama.cpp before starting the server
+    wait_for_llama(&ollama_host, &client).await;
 
     println!("Starting Rust API on port 8080...");
     HttpServer::new(move || {

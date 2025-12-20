@@ -25,21 +25,21 @@ services:
     ports:
       - "8080:8080"
     environment:
-      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_HOST: http://llama-cpp:11434
     depends_on:
-      - ollama
+      - llama-cpp
     networks:
       - appnet
     volumes:
       - ./server/RUST_TAURI/ollama_server/topics.txt:/app/topics.txt
 
-  ollama:
-    image: ollama/ollama:latest
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server
     ports:
       - "11434:11434"
     networks:
       - appnet
     volumes:
-      - ollama-data:/root/.ollama
-      - ./start-ollama.sh:/start-ollama.sh
-    entrypoint: [ "/start-ollama.sh" ]
+      - ./models:/models
+      - ./start-llama.sh:/start-llama.sh
+    entrypoint: [ "/bin/sh", "/start-llama.sh" ]
