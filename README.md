@@ -1,14 +1,14 @@
 # llama.cpp FastAPI Rust Chat
 
-A multi-tiered chat application demonstrating the integration of **FastAPI**, **Rust (Actix-Web)**, and **llama.cpp** to serve LLM requests efficiently on ARM64 (Raspberry Pi) and other architectures.
+A multi-tiered chat application integrating **FastAPI**, **Rust (Actix-Web)**, and **llama.cpp**. Optimized for high-performance LLM inference on **ARM64 (Raspberry Pi)** and other Linux architectures using native compilation.
 
 ## Project Architecture
 
-This project uses a microservices architecture to process chat requests:
+This project uses a microservices architecture to ensure security, request serialization, and efficient inference:
 
-1.  **FastAPI (Python)**: Acts as the public-facing API gateway / frontend backend.
-2.  **Rust API (Actix-Web)**: Acts as a middleware service. It implements a semaphore to strictly serialize requests (1 at a time) before forwarding them to llama.cpp.
-3.  **llama.cpp**: The LLM server hosting a Llama 3.2 GGUF model via an OpenAI-compatible API.
+1.  **FastAPI (Python)**: Acts as the public-facing API gateway. It handles CORS, input validation, and multi-layer content filtering (Profanity & LLM-Guard).
+2.  **Rust API (Actix-Web)**: A high-performance middleware that manages request queuing via a `Semaphore(1)`—ensuring the LLM isn't overwhelmed—and injects system-level instructions.
+3.  **llama.cpp**: The inference engine, built natively from source for maximum hardware optimization.
 
 ```mermaid
 graph LR
@@ -40,7 +40,7 @@ graph LR
     ```bash
     docker compose up --build
     ```
-    *This will start all three containers. On the first run, the `llama-cpp` container will download the Llama 3.2 1B GGUF model (~700MB) to the `./models` directory.*
+    *Note: The first run will take several minutes as it compiles `llama.cpp` natively for your CPU and downloads the Llama 3.2 1B GGUF model (~700MB).*
 
 3.  **Access the API**:
     The main endpoint is exposed via FastAPI on port `8000`.
@@ -48,53 +48,35 @@ graph LR
 ## API Usage
 
 ### Chat Endpoint
-
 **URL**: `http://localhost:8000/chat`
 **Method**: `POST`
 
 **Request Body**:
 ```json
 {
-  "prompt": "Why is the sky blue?",
-  "refusal_message": "Custom refusal if blocked",
+  "prompt": "Explain the concept of entropy.",
+  "refusal_message": "Optional custom block message",
   "messages": []
 }
-```
-
-**Response**:
-```json
-{
-  "response": "The sky appears blue because of..."
-}
-```
-
-**Example Request (Curl)**:
-```bash
-curl -X POST http://localhost:8000/chat \
-     -H "Content-Type: application/json" \
-     -d '{"prompt": "Why is the sky blue?"}'
 ```
 
 ## Component Details
 
 ### 1. FastAPI Service (`server/FastAPI`)
 - **Port**: 8000
-- **Framework**: FastAPI
-- **Responsibility**: Validates client requests, applies content filters (Keyword and LLM-Guard), and proxies requests to the Rust service.
-- **Config**: Supports passing custom `refusal_message` and conversation `messages` history.
+- **Responsibility**: Security and filtering.
+- **Safety**: Uses a fast keyword filter followed by `llm-guard` for deep prompt scan (Injection/Toxicity).
 
 ### 2. Rust Service (`server/RUST_TAURI`)
 - **Port**: 8080
-- **Framework**: Actix-Web
-- **Key Feature**: Implements a `Semaphore(1)` to ensure only one request is processed by the LLM at a time, preventing overload on resource-constrained devices like Raspberry Pi.
-- **Path**: `/v1/chat` (forwards to `/v1/chat/completions` on llama.cpp)
+- **Feature**: Strictly serializes requests to protect CPU/RAM on hardware like the Raspberry Pi.
+- **Health Check**: Automatically waits for the LLM model to finish loading before opening the API.
 
 ### 3. llama.cpp Service
 - **Port**: 11434
-- **Model**: `Llama-3.2-1B-Instruct` (GGUF format)
-- **Image**: `ghcr.io/ggml-org/llama.cpp:server` (multi-arch support including ARM64)
-- **Persistence**: Models are stored in the `./models` directory on the host.
+- **Model**: `Llama-3.2-1B-Instruct`
+- **Optimization**: Compiled natively with `GGML_NATIVE=ON`. Memory usage is capped (`-c 2048`) to ensure stability on devices with 4GB-8GB RAM.
+- **Build**: Built from source via a multi-stage Dockerfile located in `server/llama-cpp/`.
 
 ## License
-
 [MIT](LICENSE)
