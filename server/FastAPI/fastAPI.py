@@ -2,6 +2,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import List, Dict, Optional
 import httpx
 import os
 import logging
@@ -36,6 +37,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     prompt: str
     refusal_message: str = None
+    messages: Optional[List[Dict[str, str]]] = None
 
 DEFAULT_REFUSAL = "The prompt contains content that is not allowed. I cannot assist with topics related to restricted content."
 
@@ -66,7 +68,10 @@ async def chat(request: ChatRequest):
         async with httpx.AsyncClient(timeout=120.0) as client:
             resp = await client.post(
                 f"{RUST_HOST}/v1/chat",
-                json={"prompt": request.prompt}
+                json={
+                    "prompt": request.prompt,
+                    "messages": request.messages
+                }
             )
             logger.info(f"Rust API response status: {resp.status_code}")
             resp.raise_for_status()

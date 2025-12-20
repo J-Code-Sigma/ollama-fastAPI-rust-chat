@@ -7,8 +7,15 @@ use reqwest::Client;
 use tokio::time::{sleep, Duration};
 
 #[derive(Deserialize)]
+struct ChatMessage {
+    role: String,
+    content: String,
+}
+
+#[derive(Deserialize)]
 struct ChatRequest {
     prompt: String,
+    messages: Option<Vec<ChatMessage>>,
 }
 
 #[derive(Serialize)]
@@ -33,12 +40,16 @@ async fn chat(
     let topics = std::fs::read_to_string("topics.txt").unwrap_or_else(|_| "General assistance".to_string());
     let system_prompt = format!("You are a specialized AI assistant. You stay strictly on these topics: {}. If a user asks about other topics, you MUST state that you do not have access and cannot help with those. NEVER pretend to have information outside these topics. You also DO NOT HAVE ACCESS to user accounts, passwords, or personal data.", topics);
 
-    let payload = serde_json::json!({
+    let mut payload = serde_json::json!({
         "model": ollama_model,
         "prompt": body.prompt,
         "system": system_prompt,
         "stream": false
     });
+
+    if let Some(messages) = &body.messages {
+        payload["messages"] = serde_json::json!(messages);
+    }
     println!("[{}] Sending to Ollama: {}", start_time.format("%H:%M:%S"), payload);
 
     let resp_result = client
