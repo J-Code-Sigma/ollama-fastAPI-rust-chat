@@ -21,7 +21,7 @@ services:
 
   rust-api:
     build:
-      context: ./server/RUST_TAURI/ollama_server
+      context: ./server/RUST
     ports:
       - "8080:8080"
     environment:
@@ -31,7 +31,7 @@ services:
     networks:
       - appnet
     volumes:
-      - ./server/RUST_TAURI/ollama_server/topics.txt:/app/topics.txt
+      - ./server/RUST/topics.txt:/app/topics.txt
 
   llama-cpp:
     build:
